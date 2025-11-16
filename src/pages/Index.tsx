@@ -2,8 +2,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Slider } from "@/components/ui/slider";
 import Icon from "@/components/ui/icon";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 
 const Index = () => {
   const [formData, setFormData] = useState({
@@ -11,6 +13,9 @@ const Index = () => {
     phone: "",
     message: ""
   });
+
+  const [selectedCategory, setSelectedCategory] = useState<string>("Все");
+  const [priceRange, setPriceRange] = useState<number[]>([0, 400000]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,6 +50,7 @@ const Index = () => {
       id: 1,
       name: "Диван «Модерн»",
       price: "250 000 ₸",
+      priceValue: 250000,
       image: "https://cdn.poehali.dev/projects/62310398-9810-4af9-8113-9adcf8edad44/files/6b79b4bb-6762-4c0d-a679-7ed8e806ba11.jpg",
       category: "Диваны"
     },
@@ -52,6 +58,7 @@ const Index = () => {
       id: 2,
       name: "Обеденная группа «Скандинавия»",
       price: "180 000 ₸",
+      priceValue: 180000,
       image: "https://cdn.poehali.dev/projects/62310398-9810-4af9-8113-9adcf8edad44/files/66cdb643-880e-44b2-880b-6e99577c760c.jpg",
       category: "Столы и стулья"
     },
@@ -59,6 +66,7 @@ const Index = () => {
       id: 3,
       name: "Спальный гарнитур «Комфорт»",
       price: "320 000 ₸",
+      priceValue: 320000,
       image: "https://cdn.poehali.dev/projects/62310398-9810-4af9-8113-9adcf8edad44/files/09a2db34-c222-483b-a691-cdab393aeff7.jpg",
       category: "Спальни"
     },
@@ -66,6 +74,7 @@ const Index = () => {
       id: 4,
       name: "Угловой диван «Релакс»",
       price: "290 000 ₸",
+      priceValue: 290000,
       image: "https://cdn.poehali.dev/projects/62310398-9810-4af9-8113-9adcf8edad44/files/6b79b4bb-6762-4c0d-a679-7ed8e806ba11.jpg",
       category: "Диваны"
     },
@@ -73,6 +82,7 @@ const Index = () => {
       id: 5,
       name: "Стол обеденный «Элит»",
       price: "95 000 ₸",
+      priceValue: 95000,
       image: "https://cdn.poehali.dev/projects/62310398-9810-4af9-8113-9adcf8edad44/files/66cdb643-880e-44b2-880b-6e99577c760c.jpg",
       category: "Столы и стулья"
     },
@@ -80,10 +90,21 @@ const Index = () => {
       id: 6,
       name: "Кровать «Престиж»",
       price: "210 000 ₸",
+      priceValue: 210000,
       image: "https://cdn.poehali.dev/projects/62310398-9810-4af9-8113-9adcf8edad44/files/09a2db34-c222-483b-a691-cdab393aeff7.jpg",
       category: "Спальни"
     }
   ];
+
+  const filteredProducts = useMemo(() => {
+    return products.filter(product => {
+      const categoryMatch = selectedCategory === "Все" || product.category === selectedCategory;
+      const priceMatch = product.priceValue >= priceRange[0] && product.priceValue <= priceRange[1];
+      return categoryMatch && priceMatch;
+    });
+  }, [selectedCategory, priceRange, products]);
+
+  const allCategories = ["Все", ...categories.map(c => c.title)];
 
   return (
     <div className="min-h-screen">
@@ -195,8 +216,67 @@ const Index = () => {
             <h2 className="text-4xl font-bold mb-4">Популярные товары</h2>
             <p className="text-muted-foreground text-lg">Лучшие предложения месяца</p>
           </div>
+
+          <Card className="mb-8 p-6">
+            <div className="grid md:grid-cols-2 gap-8">
+              <div>
+                <Label className="text-base font-semibold mb-3 block">
+                  <Icon name="Filter" size={20} className="inline mr-2" />
+                  Категория
+                </Label>
+                <div className="flex flex-wrap gap-2">
+                  {allCategories.map((cat) => (
+                    <Button
+                      key={cat}
+                      variant={selectedCategory === cat ? "default" : "outline"}
+                      onClick={() => setSelectedCategory(cat)}
+                      className="transition-all"
+                    >
+                      {cat}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <Label className="text-base font-semibold mb-3 block">
+                  <Icon name="DollarSign" size={20} className="inline mr-2" />
+                  Цена: {priceRange[0].toLocaleString()} ₸ - {priceRange[1].toLocaleString()} ₸
+                </Label>
+                <Slider
+                  min={0}
+                  max={400000}
+                  step={10000}
+                  value={priceRange}
+                  onValueChange={setPriceRange}
+                  className="mt-4"
+                />
+                <div className="flex justify-between mt-2 text-sm text-muted-foreground">
+                  <span>0 ₸</span>
+                  <span>400 000 ₸</span>
+                </div>
+              </div>
+            </div>
+            <div className="mt-6 flex items-center justify-between">
+              <div className="text-sm text-muted-foreground">
+                <Icon name="Package" size={16} className="inline mr-1" />
+                Найдено товаров: <span className="font-semibold text-foreground">{filteredProducts.length}</span>
+              </div>
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  setSelectedCategory("Все");
+                  setPriceRange([0, 400000]);
+                }}
+                className="text-sm"
+              >
+                <Icon name="X" size={16} className="mr-1" />
+                Сбросить фильтры
+              </Button>
+            </div>
+          </Card>
+
           <div className="grid md:grid-cols-3 gap-8">
-            {products.map((product) => (
+            {filteredProducts.map((product) => (
               <Card key={product.id} className="overflow-hidden hover:shadow-xl transition-all hover:-translate-y-2">
                 <div className="relative h-72 overflow-hidden">
                   <img 
